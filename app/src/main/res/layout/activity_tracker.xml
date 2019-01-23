@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".TrackerActivity">
+
+    <Button
+        android:id="@+id/clearButton"
+        android:layout_width="72dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:onClick="clearTime"
+        android:text="CLEAR"
+        app:layout_constraintEnd_toEndOf="@+id/startButton"
+        app:layout_constraintStart_toEndOf="@+id/add30Button"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <Button
+        android:id="@+id/add30Button"
+        android:layout_width="72dp"
+        android:layout_height="wrap_content"
+        android:text="+30"
+        app:layout_constraintStart_toEndOf="@+id/add10Button"
+        app:layout_constraintTop_toTopOf="@+id/clearButton" />
+
+    <Button
+        android:id="@+id/add10Button"
+        android:layout_width="72dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="4dp"
+        android:layout_marginTop="4dp"
+        android:text="+10"
+        app:layout_constraintStart_toEndOf="@+id/add5Button"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <Button
+        android:id="@+id/stopButton"
+        style="@style/Widget.AppCompat.Button"
+        android:layout_width="88dp"
+        android:layout_height="48dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="8dp"
+        android:text="@string/stop"
+        app:layout_constraintBottom_toBottomOf="@+id/timerText"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/timerText"
+        app:layout_constraintTop_toBottomOf="@+id/startButton" />
+
+    <Button
+        android:id="@+id/startButton"
+        style="@style/Widget.AppCompat.Button"
+        android:layout_width="wrap_content"
+        android:layout_height="48dp"
+        android:layout_marginTop="8dp"
+        android:text="@string/start"
+        app:layout_constraintEnd_toEndOf="@+id/stopButton"
+        app:layout_constraintStart_toStartOf="@+id/stopButton"
+        app:layout_constraintTop_toBottomOf="@+id/clearButton" />
+
+    <TextView
+        android:id="@+id/timerText"
+        android:layout_width="254dp"
+        android:layout_height="102dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="60dp"
+        android:text="TextView"
+        android:textAppearance="@style/TextAppearance.AppCompat.Display3"
+        android:visibility="visible"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:text="@string/nullTime"
+        tools:textSize="72sp" />
+
+
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/recycler_view"
+        android:layout_width="367dp"
+        android:layout_height="474dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="8dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="@+id/stopButton"
+        app:layout_constraintStart_toStartOf="@+id/timerText"
+        app:layout_constraintTop_toBottomOf="@+id/timerText"
+        tools:listitem="@layout/recycler_view_item"></android.support.v7.widget.RecyclerView>
+
+    <Button
+        android:id="@+id/add1Button"
+        android:layout_width="72dp"
+        android:layout_height="wrap_content"
+        android:onClick="addTime"
+        android:text="+1"
+        app:layout_constraintStart_toStartOf="@+id/timerText"
+        app:layout_constraintTop_toTopOf="@+id/add5Button" />
+
+    <Button
+        android:id="@+id/add5Button"
+        android:layout_width="72dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="4dp"
+        android:text="+5"
+        app:layout_constraintStart_toEndOf="@+id/add1Button"
+        app:layout_constraintTop_toTopOf="@+id/add10Button" />
+
+
+</android.support.constraint.ConstraintLayout>
