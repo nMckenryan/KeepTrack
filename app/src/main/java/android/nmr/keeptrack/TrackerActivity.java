@@ -2,6 +2,7 @@ package android.nmr.keeptrack;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.media.MediaPlayer;
 import android.os.CountDownTimer;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -11,23 +12,15 @@ import android.util.Log;
 import android.util.Pair;
 import android.view.View;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
-import java.util.Timer;
+import java.util.Map;
 
 
 public class TrackerActivity extends AppCompatActivity {
@@ -90,6 +83,8 @@ public class TrackerActivity extends AppCompatActivity {
             }
         });
 
+
+        //Initialising Buttons
         mStop.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -142,8 +137,10 @@ public class TrackerActivity extends AppCompatActivity {
         });
 
 
-        initTimerData();
+        initRecyclerView();
         updateCountText();
+        //clearSharedPrefs();
+        loadTimerRecord();
     }
 
     //BEGINS TIMER
@@ -162,6 +159,7 @@ public class TrackerActivity extends AppCompatActivity {
                 @Override
                 public void onFinish() { //Ends Timer Set Start Invisible. Reset Visible. WHAT DOES THIS MEAN?
                     System.out.println("FINISHED: " + mInitialTimeLength );
+                    timerDingDing();
                     mTimerRunning = false;
                     mStart.setEnabled(false);
                     mStop.setVisibility(View.VISIBLE);
@@ -193,7 +191,6 @@ public class TrackerActivity extends AppCompatActivity {
         mStop.setVisibility(View.VISIBLE);
     }
 
-
     private void resetTimer() {
         mTimeLeft = mInitialTimeLength;
         updateCountText();
@@ -213,11 +210,12 @@ public class TrackerActivity extends AppCompatActivity {
             System.out.println("mLEFT UPDATE TRIGGER");
         }
         System.out.println("mLeft" + mTimeLeft + "mInitial" + mInitialTimeLength);
+        loadTimerRecord();
     }
 
     //BUTTON METHODS
     public void addTime(long minutesAdded) {
-        mInitialTimeLength += (minutesAdded * 60000); //formats to milliseconds
+        mInitialTimeLength += (minutesAdded * 6000); //formats to milliseconds
         updateCountText();
         Log.d(TAG, "addTime: " + mInitialTimeLength);
     }
@@ -230,7 +228,7 @@ public class TrackerActivity extends AppCompatActivity {
         }
     }
 
-
+    //FORMATTER METHODS
     //Converts Milliseconds to minutes/seconds
     private String millisToString(long time) {
         int minutes = (int) (time / 1000) / 60; //millsecs to secs to minutes
@@ -244,140 +242,63 @@ public class TrackerActivity extends AppCompatActivity {
     //Gets current date to record when timer started.
     public String dateRetriever(){
         Date current = Calendar.getInstance().getTime();
-        Log.d(TAG, "dateRetriever: Current Time:" + current);
+
 
         SimpleDateFormat df = new SimpleDateFormat("dd-MM-yyyy mm:ss");
-        return df.format(current);
+        Log.d(TAG, "dateRetriever: Current Time:" + df.format(current));
+        return df.format(current); //TODO: Not showing right time? tracks time app has been open.
     }
 
-    //Save Single Record (on timer end)
-//    private void saveTimerRecord(Pair<String, String> recordSave) {
-//        FileOutputStream fos = null;
-//        try{
-//            fos = openFileOutput("ATIMER" , MODE_PRIVATE);
-//            //fos.write(recordSave.first + " " + recordSave.second);
-//
-//            Toast.makeText(this, "SAVEDTO: " + getFilesDir(), Toast.LENGTH_SHORT).show();
-//        } catch(Exception e) {
-//            e.printStackTrace();
-//        } finally {
-//            if(fos != null) {
-//                try {
-//                    fos.close();
-//                } catch (IOException e) {
-//                    e.printStackTrace();
-//                }
-//            }
-//        }
-//    }
-
     public void saveTimerRecord(String dateString, String timeString) {
+//        SharedPreferences sharedPref = this.getPreferences(Context.MODE_PRIVATE);
+//        SharedPreferences.Editor editor = sharedPref.edit();
+//        editor.putString("DATESTR", dateString);
+//        editor.putString("TIMESTR", timeString);
+//        System.out.println("RECORD SAVED: " + dateString + " " + timeString);
+//        editor.apply();
+        String concat = dateString + " " + timeString;
         SharedPreferences sharedPref = this.getPreferences(Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPref.edit();
-        editor.putString(dateString, timeString);
+        editor.putString("TIMER SET " + timeString, " ON: " + dateString );
+        Log.d(TAG, "saveTimerRecord: " + timeString + " ON: "  + dateString);
         editor.apply();
-        System.out.println("editor: " + editor); //retrieve date from savedTimer. find how to see it.
     }
 
     public void loadTimerRecord() {
         SharedPreferences sharedPref = this.getPreferences(Context.MODE_PRIVATE);
-        mTimerNames.add(getResources().getString(R.string.preference_file_key));
-        mTimerElapsed.add(getResources().getString(R.string.preference_file_key));
+//        //mTimerNames.add(sharedPref.getString(getResources().getString(R.string.preference_file_key), null));
+//        mTimerNames.add(getResources().getString(R.string.preference_file_key));
+//
+//        mTimerElapsed.add(sharedPref.getString(getResources().getString(R.string.preference_file_key), null));
+//        System.out.println("TNAME: " + mTimerNames);
+
+        Map<String, ?> allEntries = sharedPref.getAll();
+        int i = 0;
+        for(Map.Entry<String, ?> entry : allEntries.entrySet()) {
+            Log.d(TAG, "mapValues" + entry.getKey() + ": " + entry.getValue().toString());
+            mTimerElapsed.add(entry.getKey() + ": " + entry.getValue().toString());
+            Log.d(TAG, "mTIMERELAPSEDSAV" + mTimerElapsed.get(i));
+            i++;
+        }
+
+    }
+    private void clearSharedPrefs() {
+        SharedPreferences settings = this.getPreferences(Context.MODE_PRIVATE);
+        settings.edit().clear().apply();
     }
 
-//    //Retrieves full records of Timers.
-//    private void loadTimerRecords() {
-//        FileInputStream fis = null;
-//        try {
-//            fis = openFileInput("ATIMER");
-//            InputStreamReader isr = new InputStreamReader(fis);
-//            BufferedReader br = new BufferedReader(isr);
-//            StringBuilder sb = new StringBuilder();
-//            String text;
-//
-//            while((text = br.readLine()) != null) {
-//                sb.append(text).append("\n");
-//            }
-//            Toast.makeText(this, "NAH", Toast.LENGTH_SHORT).show();
-//            mTextOutput.setText(sb.toString()); //prints record.
-//            Toast.makeText(this, "TODD HOWARD: " + getFilesDir(), Toast.LENGTH_SHORT).show();
-//
-//        } catch (FileNotFoundException e) {
-//            e.printStackTrace();
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        } finally {
-//            if(fis != null) {
-//                try {
-//                    fis.close();
-//                } catch (IOException e) {
-//                    e.printStackTrace();
-//                }
-//            }
-//        }
-//    }
 
     //RECYCLER METHOD: starts recyclerview
     private void initRecyclerView() {
         Log.d(TAG, "initTimerNames: init recyc view");
         RecyclerView recyclerView = findViewById(R.id.recycler_view);
-        RecyclerViewAdapter adapter = new RecyclerViewAdapter(mTimerElapsed, mTimerNames, this);
+        RecyclerViewAdapter adapter = new RecyclerViewAdapter(mTimerElapsed, this);
         recyclerView.setAdapter(adapter);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
     }
 
-    //sets up timer data/
-    private void initTimerData() {
-        Log.d(TAG, "initTimerNames: preparing timer names");
-
-        mTimerNames.add("2:00am");
-        mTimerElapsed.add("0:12");
-
-        mTimerNames.add("21:00am");
-        mTimerElapsed.add("0:13");
-
-        mTimerNames.add("23:00am");
-        mTimerElapsed.add("0:14");
-
-        initRecyclerView();
+    private void timerDingDing() { //Plays sound as soon as alarm completes.
+        MediaPlayer mp = MediaPlayer.create(this, R.raw.alarm);
+        mp.start();
     }
-
-
-
-
-
-
-    //
-//    public void startPressed(View v) {
-//        mTimer.getTimer().start();
-//    }
-//
-//    public void stopPressed(View v) { //Stops ticker if time elapsed is over one.
-//        //resetPressed(v);
-//    }
-//
-//    public void pausePressed(View v) { //Pauses ticker
-//        mTimer.getTimer().pause();
-//    }
-//
-//
-//    public void swapButton(View v) { //Changes the Startbutton on press
-//      if(mStart.getText().equals(getResources().getString(R.string.start))) {
-//          System.out.println("STARTPRESSED");
-//          mStart.setText(R.string.stop);
-//          System.out.println("STOPIS: " + mStart);
-//          startPressed(v);
-//      } else {
-//          System.out.println("STOPPRESSED");
-//          mStart.setText(R.string.start);
-//          System.out.println("STARTIS: " + mStart);
-//          pausePressed(v);
-//      }
-//    }
-//
-////    public void resetPressed(View v) {
-////        mTimer.resetTime();
-////        mTimerText.setText(mTimer.getTimeElapsed());
-////    }
-
 }

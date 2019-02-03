@@ -2,7 +2,6 @@ package android.nmr.keeptrack;
 
 import android.content.Context;
 import android.support.annotation.NonNull;
-import android.support.constraint.ConstraintLayout;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -22,14 +21,12 @@ import java.util.ArrayList;
 public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapter.ViewHolder>{
 
     private static final String TAG = "RecyclerViewAdapter";
-    private ArrayList<String> mTimerElapsed = new ArrayList();
-    private ArrayList<String> mTimerDate = new ArrayList<>(); //acts as naming mechanism - GET DATE
+    private ArrayList<String> mTimerItem = new ArrayList();
     private Context mContext;
 
 
-    public RecyclerViewAdapter(ArrayList<String> timerElapsed, ArrayList<String> timeStarted, Context context) {
-        mTimerElapsed = timerElapsed;
-        mTimerDate = timeStarted;
+    public RecyclerViewAdapter(ArrayList<String> timerItem, Context context) {
+        mTimerItem = timerItem;
         mContext = context;
     }
 
@@ -45,7 +42,7 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
     //ViewHolder constructor
     public class ViewHolder extends RecyclerView.ViewHolder {
         TextView timerElapsed;
-        TextView timerDate;
+        //TextView timerDate;
         RelativeLayout parentLayout;
 
         public ViewHolder(View itemView) {
@@ -53,7 +50,7 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
 
             //Searches for ID set in xml
             timerElapsed = itemView.findViewById(R.id.timeElapsed);
-            timerDate = itemView.findViewById(R.id.timerDate);
+            //timerDate = itemView.findViewById(R.id.timerDate);
             parentLayout = itemView.findViewById(R.id.parent_layout);
         }
     }
@@ -64,15 +61,15 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
         Log.d(TAG, "onBindViewHolder: called");
 
         //change to timerName.
-        holder.timerElapsed.setText(mTimerElapsed.get(position));
-        holder.timerDate.setText(mTimerDate.get(position));
+        holder.timerElapsed.setText(mTimerItem.get(position));
+        //holder.timerDate.setText(mTimerDate.get(position));
 
         holder.parentLayout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Log.d(TAG, "onClick: clicked on:" + mTimerDate.get(position));
+                Log.d(TAG, "onClick: clicked on:" + mTimerItem.get(position));
                 //Shows time elapsed. CREATE FUNCTIONALITY?
-                Toast.makeText(mContext, mTimerDate.get(position), Toast.LENGTH_SHORT).show();
+                Toast.makeText(mContext, mTimerItem.get(position), Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -80,7 +77,7 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
     //Gets number of items in list.
     @Override
     public int getItemCount() {
-        return mTimerDate.size();
+        return mTimerItem.size();
     }
 
 
