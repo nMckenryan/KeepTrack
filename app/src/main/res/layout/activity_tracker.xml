@@ -11,7 +11,6 @@
         android:layout_width="72dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="4dp"
-        android:onClick="clearTime"
         android:text="CLEAR"
         app:layout_constraintEnd_toEndOf="@+id/startButton"
         app:layout_constraintStart_toEndOf="@+id/add30Button"
@@ -78,11 +77,9 @@
     <android.support.v7.widget.RecyclerView
         android:id="@+id/recycler_view"
         android:layout_width="367dp"
-        android:layout_height="474dp"
+        android:layout_height="503dp"
         android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"
-        android:layout_marginBottom="8dp"
-        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="@+id/stopButton"
         app:layout_constraintStart_toStartOf="@+id/timerText"
         app:layout_constraintTop_toBottomOf="@+id/timerText"
@@ -105,6 +102,22 @@
         android:text="+5"
         app:layout_constraintStart_toEndOf="@+id/add1Button"
         app:layout_constraintTop_toTopOf="@+id/add10Button" />
+
+    <Button
+        android:id="@+id/clearRecordsButton"
+        style="@style/Widget.AppCompat.Button"
+        android:layout_width="373dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="21dp"
+        android:layout_marginEnd="302dp"
+        android:layout_marginBottom="8dp"
+        android:text="CLEAR ALL RECORDS"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/recycler_view"
+        app:layout_constraintVertical_bias="0.0" />
 
 
 </android.support.constraint.ConstraintLayout>

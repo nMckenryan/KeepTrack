@@ -1,9 +1,11 @@
 package android.nmr.keeptrack;
 
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.media.MediaPlayer;
 import android.os.CountDownTimer;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
@@ -15,9 +17,8 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import java.text.SimpleDateFormat;
+import java.text.DateFormat;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
 import java.util.Map;
@@ -29,23 +30,20 @@ public class TrackerActivity extends AppCompatActivity {
     protected Button mStart;
     protected Button mStop;
     protected TextView mTimerText;
-    protected TextView mTextOutput;
 
     protected Button m1Button;
     protected Button m5Button;
     protected Button m10Button;
     protected Button m30Button;
     protected Button mClearButton;
-
-    protected Date mDateStarted;
+    protected Button mClearRecordsButton;
 
     private long mInitialTimeLength;
     private long mTimeLeft;
     private boolean mTimerRunning;
     private static final String TAG = "TrackerActivity";
 
-    private ArrayList<String> mTimerNames = new ArrayList<>();
-    private ArrayList<String> mTimerElapsed = new ArrayList<>();
+    private ArrayList<String> mTimerList = new ArrayList<>();
 
 
     @Override
@@ -65,6 +63,7 @@ public class TrackerActivity extends AppCompatActivity {
         m10Button = (Button)findViewById(R.id.add10Button);
         m30Button = (Button)findViewById(R.id.add30Button);
         mClearButton = (Button)findViewById(R.id.clearButton);
+        mClearRecordsButton = (Button)findViewById(R.id.clearRecordsButton);
 
         mStart = (Button) findViewById(R.id.startButton);
         mStart.setText(R.string.start);
@@ -127,20 +126,15 @@ public class TrackerActivity extends AppCompatActivity {
             }
         });
 
-        // Clears Timer
-        mClearButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                mInitialTimeLength = 0;
-                updateCountText();
-            }
-        });
-
+        mClearRecordsButton.setOnClickListener(new View.OnClickListener() {
+           @Override
+           public void onClick(View view) {
+               launchDialog();
+           }
+       });
 
         initRecyclerView();
         updateCountText();
-        //clearSharedPrefs();
-        loadTimerRecord();
     }
 
     //BEGINS TIMER
@@ -166,10 +160,6 @@ public class TrackerActivity extends AppCompatActivity {
                     //RECORD TIMER
                     Pair<String, String> newRecord = new Pair<>
                             (dateRetriever(), millisToString(mInitialTimeLength)); //Saves Data+Inital Set Time as a key-value pair.
-                    //Inject fucking date.
-//                    mTimerNames.add(newRecord.first);
-//                    mTimerElapsed.add(newRecord.second);
-//                    initRecyclerView();
                     saveTimerRecord(newRecord.first, newRecord.second);
                     loadTimerRecord();
                 }
@@ -180,6 +170,7 @@ public class TrackerActivity extends AppCompatActivity {
             mTimerRunning = true;
             swapStartText();
             mStop.setVisibility(View.INVISIBLE);
+            loadTimerRecord();
         }
     }
 
@@ -191,6 +182,7 @@ public class TrackerActivity extends AppCompatActivity {
         mStop.setVisibility(View.VISIBLE);
     }
 
+    //RESETS TIMER
     private void resetTimer() {
         mTimeLeft = mInitialTimeLength;
         updateCountText();
@@ -204,22 +196,13 @@ public class TrackerActivity extends AppCompatActivity {
     private void updateCountText() {
         if(mTimerRunning == false) {
             mTimerText.setText(millisToString(mInitialTimeLength));//(Long.toString(mInitialTimeLength));
-            System.out.println("mINTIIAL UPDATE TRIGGER");
         } else {
             mTimerText.setText(millisToString(mTimeLeft));
-            System.out.println("mLEFT UPDATE TRIGGER");
         }
-        System.out.println("mLeft" + mTimeLeft + "mInitial" + mInitialTimeLength);
         loadTimerRecord();
     }
 
     //BUTTON METHODS
-    public void addTime(long minutesAdded) {
-        mInitialTimeLength += (minutesAdded * 6000); //formats to milliseconds
-        updateCountText();
-        Log.d(TAG, "addTime: " + mInitialTimeLength);
-    }
-
     private void swapStartText() { //Switches START button text from pause to start.
         if(mStart.getText() == getResources().getString(R.string.pause)) {
             mStart.setText(getResources().getString(R.string.start));
@@ -227,6 +210,82 @@ public class TrackerActivity extends AppCompatActivity {
             mStart.setText(getResources().getString(R.string.pause));
         }
     }
+
+    public void addTime(long minutesAdded) {
+        mInitialTimeLength += (minutesAdded * 6000); //formats to milliseconds
+        updateCountText();
+        Log.d(TAG, "addTime: " + mInitialTimeLength);
+    }
+
+    //Saves record to SharedPreferences, Recyclerview below.
+    public void saveTimerRecord(String dateString, String timeString) {
+        SharedPreferences sharedPref = this.getPreferences(Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPref.edit();
+        editor.putString("TIMER SET ON:" + dateString, " FOR: " + timeString );
+        Log.d(TAG, "saveTimerRecord: " + timeString + " ON: "  + dateString);
+        editor.apply();
+    }
+
+    //LOADS & UPDATES RECORDS
+    public void loadTimerRecord() {
+        mTimerList.clear();
+        SharedPreferences sharedPref = this.getPreferences(Context.MODE_PRIVATE);
+
+        Map<String, ?> allEntries = sharedPref.getAll();
+        int i = 0;
+        for(Map.Entry<String, ?> entry : allEntries.entrySet()) {
+            Log.d(TAG, "mapValues" + entry.getKey() + ": " + entry.getValue().toString());
+            mTimerList.add(entry.getKey() + ": " + entry.getValue().toString());
+            Log.d(TAG, "mTIMERELAPSEDSAV" + mTimerList.get(i));
+            i++;
+        }
+        initRecyclerView();
+
+    }
+
+    //CLEARS RECORDS & SAVED SHAREDPREFS
+    private void clearSharedPrefs() {
+        SharedPreferences settings = this.getPreferences(Context.MODE_PRIVATE);
+        settings.edit().clear().apply();
+        Log.d(TAG, "clearSharedPrefs: mTimerList Left:" + mTimerList.size() );
+        loadTimerRecord();
+    }
+
+    private void launchDialog(){ //Launched toast dialog, confirming if user wishes to clear sharedprefs/records.
+        DialogInterface.OnClickListener dialogClickListener = new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int selection) {
+                switch (selection) {
+                    case DialogInterface.BUTTON_POSITIVE:
+                        //Records Cleared
+                        clearSharedPrefs();
+                        break;
+                    case DialogInterface.BUTTON_NEGATIVE:
+                        //Nothing happens
+                        break;
+                }
+            }
+        };
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setMessage("Are you sure? All Records will be Cleared").setPositiveButton("Yes", dialogClickListener)
+                    .setNegativeButton("No", dialogClickListener).show();
+    }
+
+    //RECYCLER METHOD: starts recyclerview
+    private void initRecyclerView() {
+        Log.d(TAG, "initTimerNames: init recyc view");
+        RecyclerView recyclerView = findViewById(R.id.recycler_view);
+        RecyclerViewAdapter adapter = new RecyclerViewAdapter(mTimerList, this);
+        recyclerView.setAdapter(adapter);
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+    }
+
+    //Initiates Sound of Alarm
+    private void timerDingDing() { //Plays sound as soon as alarm completes.
+        MediaPlayer mp = MediaPlayer.create(this, R.raw.alarm);
+        mp.start();
+    }
+
 
     //FORMATTER METHODS
     //Converts Milliseconds to minutes/seconds
@@ -241,64 +300,8 @@ public class TrackerActivity extends AppCompatActivity {
 
     //Gets current date to record when timer started.
     public String dateRetriever(){
-        Date current = Calendar.getInstance().getTime();
-
-
-        SimpleDateFormat df = new SimpleDateFormat("dd-MM-yyyy mm:ss");
-        Log.d(TAG, "dateRetriever: Current Time:" + df.format(current));
-        return df.format(current); //TODO: Not showing right time? tracks time app has been open.
-    }
-
-    public void saveTimerRecord(String dateString, String timeString) {
-//        SharedPreferences sharedPref = this.getPreferences(Context.MODE_PRIVATE);
-//        SharedPreferences.Editor editor = sharedPref.edit();
-//        editor.putString("DATESTR", dateString);
-//        editor.putString("TIMESTR", timeString);
-//        System.out.println("RECORD SAVED: " + dateString + " " + timeString);
-//        editor.apply();
-        String concat = dateString + " " + timeString;
-        SharedPreferences sharedPref = this.getPreferences(Context.MODE_PRIVATE);
-        SharedPreferences.Editor editor = sharedPref.edit();
-        editor.putString("TIMER SET " + timeString, " ON: " + dateString );
-        Log.d(TAG, "saveTimerRecord: " + timeString + " ON: "  + dateString);
-        editor.apply();
-    }
-
-    public void loadTimerRecord() {
-        SharedPreferences sharedPref = this.getPreferences(Context.MODE_PRIVATE);
-//        //mTimerNames.add(sharedPref.getString(getResources().getString(R.string.preference_file_key), null));
-//        mTimerNames.add(getResources().getString(R.string.preference_file_key));
-//
-//        mTimerElapsed.add(sharedPref.getString(getResources().getString(R.string.preference_file_key), null));
-//        System.out.println("TNAME: " + mTimerNames);
-
-        Map<String, ?> allEntries = sharedPref.getAll();
-        int i = 0;
-        for(Map.Entry<String, ?> entry : allEntries.entrySet()) {
-            Log.d(TAG, "mapValues" + entry.getKey() + ": " + entry.getValue().toString());
-            mTimerElapsed.add(entry.getKey() + ": " + entry.getValue().toString());
-            Log.d(TAG, "mTIMERELAPSEDSAV" + mTimerElapsed.get(i));
-            i++;
-        }
-
-    }
-    private void clearSharedPrefs() {
-        SharedPreferences settings = this.getPreferences(Context.MODE_PRIVATE);
-        settings.edit().clear().apply();
-    }
-
-
-    //RECYCLER METHOD: starts recyclerview
-    private void initRecyclerView() {
-        Log.d(TAG, "initTimerNames: init recyc view");
-        RecyclerView recyclerView = findViewById(R.id.recycler_view);
-        RecyclerViewAdapter adapter = new RecyclerViewAdapter(mTimerElapsed, this);
-        recyclerView.setAdapter(adapter);
-        recyclerView.setLayoutManager(new LinearLayoutManager(this));
-    }
-
-    private void timerDingDing() { //Plays sound as soon as alarm completes.
-        MediaPlayer mp = MediaPlayer.create(this, R.raw.alarm);
-        mp.start();
+        String current = DateFormat.getDateTimeInstance().format(new Date());
+        Log.d(TAG, "dateRetriever: Current Time:" + current); // + df.format(current));
+        return current;
     }
 }

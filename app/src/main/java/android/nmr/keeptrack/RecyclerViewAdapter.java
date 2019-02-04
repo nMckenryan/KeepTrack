@@ -42,7 +42,6 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
     //ViewHolder constructor
     public class ViewHolder extends RecyclerView.ViewHolder {
         TextView timerElapsed;
-        //TextView timerDate;
         RelativeLayout parentLayout;
 
         public ViewHolder(View itemView) {
@@ -50,7 +49,6 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
 
             //Searches for ID set in xml
             timerElapsed = itemView.findViewById(R.id.timeElapsed);
-            //timerDate = itemView.findViewById(R.id.timerDate);
             parentLayout = itemView.findViewById(R.id.parent_layout);
         }
     }
@@ -62,7 +60,6 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
 
         //change to timerName.
         holder.timerElapsed.setText(mTimerItem.get(position));
-        //holder.timerDate.setText(mTimerDate.get(position));
 
         holder.parentLayout.setOnClickListener(new View.OnClickListener() {
             @Override
