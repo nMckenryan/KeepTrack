@@ -23,6 +23,11 @@ import java.util.Date;
 import java.util.Locale;
 import java.util.Map;
 
+/*
+    TrackerActivity: This controller holds most of the logic for the program.
+    I've divided the code into different sections, as there's a fair bit here.
+ */
+
 
 public class TrackerActivity extends AppCompatActivity {
 
@@ -43,7 +48,7 @@ public class TrackerActivity extends AppCompatActivity {
     private boolean mTimerRunning;
     private static final String TAG = "TrackerActivity";
 
-    private ArrayList<String> mTimerList = new ArrayList<>();
+    private ArrayList<String> mTimerList = new ArrayList<>(); //Holds the data for the RecyclerView
 
 
     @Override
@@ -54,21 +59,21 @@ public class TrackerActivity extends AppCompatActivity {
 
         mInitialTimeLength = 0;
 
-        mTimerText = (TextView) findViewById(R.id.timerText);
+        mTimerText = findViewById(R.id.timerText);
         //mTextOutput = (TextView) findViewById(R.id.outPutView);
         //mTimer = new Timer(10, mTimerText);
 
-        m1Button = (Button)findViewById(R.id.add1Button);
-        m5Button = (Button)findViewById(R.id.add5Button);
-        m10Button = (Button)findViewById(R.id.add10Button);
-        m30Button = (Button)findViewById(R.id.add30Button);
-        mClearButton = (Button)findViewById(R.id.clearButton);
-        mClearRecordsButton = (Button)findViewById(R.id.clearRecordsButton);
+        m1Button = findViewById(R.id.add1Button);
+        m5Button = findViewById(R.id.add5Button);
+        m10Button = findViewById(R.id.add10Button);
+        m30Button = findViewById(R.id.add30Button);
+        mClearButton = findViewById(R.id.clearButton);
+        mClearRecordsButton = findViewById(R.id.clearRecordsButton);
 
-        mStart = (Button) findViewById(R.id.startButton);
+        mStart = findViewById(R.id.startButton);
         mStart.setText(R.string.start);
 
-        mStop = (Button)findViewById(R.id.stopButton);
+        mStop = findViewById(R.id.stopButton);
         mStop.setVisibility(View.INVISIBLE); //Reset Button Invisible on start
 
         mStart.setOnClickListener(new View.OnClickListener() {
@@ -133,9 +138,13 @@ public class TrackerActivity extends AppCompatActivity {
            }
        });
 
+
+        //Initialising RecyclerView & Countdown Functionality
         initRecyclerView();
         updateCountText();
     }
+
+    //MAIN TIMER METHODS
 
     //BEGINS TIMER
     private void startTimer() {
@@ -145,7 +154,6 @@ public class TrackerActivity extends AppCompatActivity {
             mTimer = new CountDownTimer(mInitialTimeLength, 1000) {
                 @Override
                 public void onTick(long timeUntilFinished) {
-                    System.out.println("TICKED!" + timeUntilFinished + ": TIMESET: " + mInitialTimeLength);
                     mTimeLeft = timeUntilFinished;
                     updateCountText();
                 }
@@ -163,13 +171,13 @@ public class TrackerActivity extends AppCompatActivity {
                     saveTimerRecord(newRecord.first, newRecord.second);
                     loadTimerRecord();
                 }
-                //recordsDate
             };
 
             mTimer.start(); //Timer starts
             mTimerRunning = true;
             swapStartText();
             mStop.setVisibility(View.INVISIBLE);
+            disableButtons(true);//disables buttons
             loadTimerRecord();
         }
     }
@@ -190,11 +198,12 @@ public class TrackerActivity extends AppCompatActivity {
         mStart.setEnabled(true);
         swapStartText();
         mStart.setVisibility(View.VISIBLE);
+        disableButtons(false);
     }
 
     //Handles Ticking of Timer (for OnTick method)
     private void updateCountText() {
-        if(mTimerRunning == false) {
+        if(mTimerRunning) {
             mTimerText.setText(millisToString(mInitialTimeLength));//(Long.toString(mInitialTimeLength));
         } else {
             mTimerText.setText(millisToString(mTimeLeft));
@@ -211,11 +220,8 @@ public class TrackerActivity extends AppCompatActivity {
         }
     }
 
-    public void addTime(long minutesAdded) {
-        mInitialTimeLength += (minutesAdded * 6000); //formats to milliseconds
-        updateCountText();
-        Log.d(TAG, "addTime: " + mInitialTimeLength);
-    }
+
+    // SAVING/LOADING RECORDS
 
     //Saves record to SharedPreferences, Recyclerview below.
     public void saveTimerRecord(String dateString, String timeString) {
@@ -250,6 +256,9 @@ public class TrackerActivity extends AppCompatActivity {
         Log.d(TAG, "clearSharedPrefs: mTimerList Left:" + mTimerList.size() );
         loadTimerRecord();
     }
+
+
+    //UI METHODS
 
     private void launchDialog(){ //Launched toast dialog, confirming if user wishes to clear sharedprefs/records.
         DialogInterface.OnClickListener dialogClickListener = new DialogInterface.OnClickListener() {
@@ -286,8 +295,30 @@ public class TrackerActivity extends AppCompatActivity {
         mp.start();
     }
 
+    public void addTime(long minutesAdded) {
+        mInitialTimeLength += (minutesAdded * 60000); //formats to milliseconds
+        updateCountText();
+        Log.d(TAG, "addTime: " + mInitialTimeLength);
+    }
+
+    private void disableButtons(boolean choice) {
+        if(choice) {
+            m1Button.setVisibility(View.INVISIBLE);
+            m5Button.setVisibility(View.INVISIBLE);
+            m10Button.setVisibility(View.INVISIBLE);
+            m30Button.setVisibility(View.INVISIBLE);
+            mClearButton.setVisibility(View.INVISIBLE);
+        } else{
+            m1Button.setVisibility(View.VISIBLE);
+            m5Button.setVisibility(View.VISIBLE);
+            m10Button.setVisibility(View.VISIBLE);
+            m30Button.setVisibility(View.VISIBLE);
+            mClearButton.setVisibility(View.VISIBLE);
+        }
+    }
 
     //FORMATTER METHODS
+
     //Converts Milliseconds to minutes/seconds
     private String millisToString(long time) {
         int minutes = (int) (time / 1000) / 60; //millsecs to secs to minutes
